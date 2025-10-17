@@ -23,7 +23,7 @@ const createAccessAndRefreshToken = async(userId)=>{
 
 const options = {
   httpOnly:true,
-  secure:true
+  secure:false
 }
 
 const registerUser = asyncHandler(async(req, res)=>{
@@ -77,20 +77,20 @@ const loginUser = asyncHandler(async(req,res)=>{
   const {email, password} = req.body
   
   if(!email || !password){
-    throw new ApiError(401, "all fields are required")
+    throw new ApiError(401, "All fields are required")
   }
   
   const user = await User.findOne({email})
   console.log(user)
   
   if(!user){
-    throw new ApiError(404, "user not found")
+    throw new ApiError(404, "User not found")
   }
   
   const isPasswordCorrect = await user.isPasswordCorrect(password)
   
   if(!isPasswordCorrect){
-    throw new ApiError(401, "password is incorrect")
+    throw new ApiError(401, "Password is incorrect")
   }
   
  const {accessToken, refreshToken} = await createAccessAndRefreshToken(user._id)
@@ -116,8 +116,18 @@ const getAllUsers = asyncHandler(async(req,res)=>{
   
 })
 
+const getUser = asyncHandler(async(req,res)=>{
+  
+  const user = await User.findById(req.user._id).select("-password -email -refreshToken")
+  
+  return res
+  .status(200)
+  .json(new ApiResponse(200, user, " user fetched successfully"))
+})
+
 export {
   registerUser,
   loginUser,
-  getAllUsers
+  getAllUsers,
+  getUser
 }
